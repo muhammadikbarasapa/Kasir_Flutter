@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart'; // Ganti barcode dengan QR
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,6 +73,42 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return 'Rp ${value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
   }
 
+  Future<void> generatePdfStruk() async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(child: pw.Text('Struk Pembayaran', style: pw.TextStyle(fontSize: 18))),
+              pw.SizedBox(height: 8),
+              pw.Text('Tanggal: ${DateTime.now()}'),
+              pw.Text('Kode Transaksi: $transactionCode'),
+              pw.Divider(),
+              ...widget.cartItems.map((item) {
+                final name = item['name'];
+                final price = item['price'];
+                final quantity = item['quantity'];
+                final total = price * quantity;
+                return pw.Text('$name x$quantity = Rp$total');
+              }).toList(),
+              pw.Divider(),
+              pw.Text('Total: Rp${widget.total}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 16),
+              pw.Text('QRIS (kode):'),
+              pw.SizedBox(height: 6),
+              pw.Text('000201010212...081517031754...6304ABCD', style: pw.TextStyle(fontSize: 10)),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,7 +122,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Informasi toko
             Align(
               alignment: Alignment.center,
               child: Column(
@@ -102,7 +139,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
             ),
 
-            // Tabel produk
+            // Tabel Produk
             Expanded(
               child: SingleChildScrollView(
                 child: Table(
@@ -194,9 +231,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            // Tombol Tampilkan QRIS
+            // Tombol tampil QR
             if (!_showQrCode)
               SizedBox(
                 width: double.infinity,
@@ -212,7 +249,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
             const SizedBox(height: 16),
 
-            // QR Code hanya jika tombol diklik
             if (_showQrCode)
               Center(
                 child: QrImageView(
@@ -223,7 +259,26 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
               ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Tombol unduh PDF
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.picture_as_pdf),
+                label: const Text('Unduh PDF Struk'),
+                onPressed: () async {
+                  await generatePdfStruk();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[600],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             // Tombol selesai
             SizedBox(
