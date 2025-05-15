@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:barcode_widget/barcode_widget.dart';
+import 'package:qr_flutter/qr_flutter.dart'; // Ganti barcode dengan QR
 
 void main() {
   runApp(const MyApp());
@@ -58,7 +58,7 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  bool _showBarcode = false;
+  bool _showQrCode = false;
   late String transactionCode;
 
   @override
@@ -196,31 +196,30 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
             const SizedBox(height: 16),
 
-            // Tombol Tampilkan Barcode
-            if (!_showBarcode)
+            // Tombol Tampilkan QRIS
+            if (!_showQrCode)
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
                     setState(() {
-                      _showBarcode = true;
+                      _showQrCode = true;
                     });
                   },
-                  child: const Text('Tampilkan Barcode'),
+                  child: const Text('Tampilkan QRIS'),
                 ),
               ),
 
             const SizedBox(height: 16),
 
-            // Barcode hanya jika tombol diklik
-            if (_showBarcode)
+            // QR Code hanya jika tombol diklik
+            if (_showQrCode)
               Center(
-                child: BarcodeWidget(
-                  barcode: Barcode.code128(),
-                  data: transactionCode,
-                  width: 200,
-                  height: 80,
-                  drawText: true,
+                child: QrImageView(
+                  data: '000201010212...081517031754...6304ABCD',
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  backgroundColor: Colors.white,
                 ),
               ),
 

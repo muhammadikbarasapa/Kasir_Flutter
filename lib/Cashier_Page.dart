@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'checkout_page.dart';
+import 'struk_page.dart';
 
 
 class CashierPage extends StatefulWidget {
